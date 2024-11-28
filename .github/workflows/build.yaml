@@ -2,7 +2,7 @@ name: Crear el PDF de la propuesta de tesis
 on: push
 
 jobs:
-  build-propuesta.pdf:
+  buildpdf:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
