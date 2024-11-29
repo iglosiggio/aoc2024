@@ -8,9 +8,10 @@
 #set text(lang: "es")
 #set par(justify: true)
 
+#let dbg(body) = [#body]
 #let code(body) = raw(lang: "typc", body)
 
-#let globals = state("globals", (:))
+#let globals = state("globals", (dbg: dbg))
 
 #let label-options = (
   fill: gradient.linear(dir: ttb, luma(225), luma(245)),
@@ -133,7 +134,8 @@ treb7uchet
 In this example, the calibration values of these four lines are `12`, `38`,
 `15`, and `77`. Adding these together produces `142`.
 
-Consider your entire calibration document. *What is the sum of all of the calibration values?*
+Consider your entire calibration document. *What is the sum of all of the
+calibration values?*
 
 === Resolución
 
@@ -166,4 +168,89 @@ ejercicio(data)
 ```repl
 let data = read("2023-example.data")
 ejercicio(data)
+```
+
+== Part Two
+
+Your calculation isn't quite right. It looks like some of the digits are
+actually *spelled out with letters*: `one`, `two`, `three`, `four`, `five`,
+`six`, `seven`, `eight`, and `nine` also count as valid "digits".
+
+Equipped with this new information, you now need to find the real first and
+last digit on each line. For example:
+
+```data
+two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen
+```
+
+In this example, the calibration values are `29`, `83`, `13`, `24`, `42`, `14`,
+and `76`. Adding these together produces `281`.
+
+*What is the sum of all of the calibration values?*
+
+```definition
+let ejercicio-2(data) = {
+  let text2num = (
+    zero: 0,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+  )
+  let lines = data.split()
+  let result = 0
+  for line in lines {
+    let matches = (
+        line.matches(regex("\d"))
+      + line.matches(regex("zero"))
+      + line.matches(regex("one"))
+      + line.matches(regex("two"))
+      + line.matches(regex("three"))
+      + line.matches(regex("four"))
+      + line.matches(regex("five"))
+      + line.matches(regex("six"))
+      + line.matches(regex("seven"))
+      + line.matches(regex("eight"))
+      + line.matches(regex("nine"))).sorted(key: v => v.start)
+    let a = matches.first().text
+    let b = matches.last().text
+    if a.len() != 1 {
+      a = text2num.at(a)
+    } else {
+      a = int(a)
+    }
+    if b.len() != 1 {
+      b = text2num.at(b)
+    } else {
+      b = int(b)
+    }
+    let n = a * 10 + b
+    result = result + n
+  }
+  result
+}
+
+(ejercicio-2: ejercicio-2)
+```
+
+```repl
+ejercicio-2(data)
+```
+
+=== Data posta
+
+```repl
+let data = read("2023-example.data")
+ejercicio-2(data)
 ```
