@@ -45,7 +45,7 @@
   globals.update(currentGlobals => (: ..currentGlobals, data: it.text))
 }
 
-= Advent of Code 2025
+= Advent of Code 2024
 
 == Pruebas iniciales
 
@@ -164,6 +164,6 @@ ejercicio(data)
 === Data posta
 
 ```repl
-let data = read("2024-example.data")
+let data = read("2023-example.data")
 ejercicio(data)
 ```
