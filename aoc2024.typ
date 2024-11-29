@@ -8,7 +8,12 @@
 #set text(lang: "es")
 #set par(justify: true)
 
-#let dbg(body) = [#body]
+#let dbg(..args) = {
+  let named = args.named().pairs().map(((k, v)) => [#k = #v])
+  let positional = args.pos().map(v => [#v])
+  (named + positional).join(", ")
+  linebreak()
+}
 #let code(body) = raw(lang: "typc", body)
 
 #let globals = state("globals", (dbg: dbg))
@@ -253,4 +258,36 @@ ejercicio-2(data)
 ```repl
 let data = read("2023-example.data")
 ejercicio-2(data)
+```
+
+=== Hola fran
+
+```data
+two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen
+```
+
+```repl
+let lines = data.split()
+for line in lines {
+  let matches = (
+      line.matches(regex("\d"))
+    + line.matches(regex("zero"))
+    + line.matches(regex("one"))
+    + line.matches(regex("two"))
+    + line.matches(regex("three"))
+    + line.matches(regex("four"))
+    + line.matches(regex("five"))
+    + line.matches(regex("six"))
+    + line.matches(regex("seven"))
+    + line.matches(regex("eight"))
+    + line.matches(regex("nine"))).sorted(key: v => v.start)
+  dbg(count: matches.len(), matches.first().text, matches.last().text)
+}
+dbg(a: 123, b: 321, arr: (1, 2, 3), "pos1", [*pos2*], $"pos"^3$)
 ```
