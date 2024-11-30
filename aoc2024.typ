@@ -540,7 +540,34 @@ let draw(data) = {
 (draw-map: draw)
 ```
 
+Mmmm también peudo usar graphviz para dibujar grafos.
+
+```definition
+let graph-to-graphviz(graph, ..args) = {
+  import "@preview/diagraph:0.3.0": render
+  render({
+    "digraph {"
+      for (a, neighbours) in graph.pairs() {
+        for b in neighbours {
+          "\""; a; "\" -> \""; b; "\";"
+	}
+      }
+    "}"
+  })
+}
+(graph-to-graphviz: graph-to-graphviz)
+```
+
+```repl
+graph-to-graphviz((
+  A: ("B", "C", "D"),
+  B: ("C", "D"),
+  C: ("A",),
+))
+```
+
 Ahora me pongo a pensar la resolución:
+
 ```repl
 dbg(draw-map(data))
 
@@ -552,10 +579,56 @@ for (y, row) in enumerate(map) {
   for (x, col) in enumerate(row) {
     if col == "S" {
       start = (x, y)
+      break
     }
   }
 }
 dbg(start: start)
+
+let connects-h((a_x, a_y), (b_x, b_y)) = {
+  let a = map.at(a_y).at(a_x)
+  let b = map.at(b_y).at(b_x)
+  if a == "." or b == "." { return false }
+  if a == "|" or b == "|" { return false }
+  if a == "7" or a == "J" { return false }
+  if b == "F" or b == "L" { return false }
+  return true
+}
+
+let connects-v((a_x, a_y), (b_x, b_y)) = {
+  let a = map.at(a_y).at(a_x)
+  let b = map.at(b_y).at(b_x)
+  if a == "." or b == "." { return false }
+  if a == "-" or b == "-" { return false }
+  if a == "J" or a == "L" { return false }
+  if b == "F" or b == "7" { return false }
+  return true
+}
+
+let rows = map.len()
+let cols = map.first().len()
+
+let is-inside((x, y)) = 0 <= x and x < cols and 0 <= y and y < rows
+
+let vert-id = 0
+let graph = (:)
+for (y, row) in enumerate(map) {
+  for (x, col) in enumerate(row) {
+    let p = (x, y)
+    let r = (x + 1, y)
+    let l = (x - 1, y)
+    let d = (x, y + 1)
+    let u = (x, y - 1)
+    let neighbours = ()
+    if is-inside(r) and connects-h(p, r) { neighbours.push(repr(r)) }
+    if is-inside(l) and connects-h(p, l) { neighbours.push(repr(l)) }
+    if is-inside(u) and connects-v(p, u) { neighbours.push(repr(u)) }
+    if is-inside(d) and connects-v(p, d) { neighbours.push(repr(d)) }
+    graph.insert(repr(p), neighbours)
+  }
+}
+dbg(graph)
+scale(reflow:true, 50%, graph-to-graphviz(graph))
 ```
 
 === Part Two
