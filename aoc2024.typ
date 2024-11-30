@@ -8,9 +8,12 @@
 #set text(lang: "es")
 #set par(justify: true)
 
+#let log-id = counter("log-id")
 #let dbg(..args) = {
   let named = args.named().pairs().map(((k, v)) => [#k = #v])
   let positional = args.pos().map(v => [#v])
+  [[#log-id.display()] ]
+  log-id.step()
   (named + positional).join(", ")
   linebreak()
 }
@@ -32,6 +35,7 @@
 )
 
 #show raw.where(lang: "definition"): it => {
+  log-id.update(0)
   block(..label-options, [*Code*])
   block(..body-options, raw(lang: "typc", it.text))
   globals.update(currentGlobals => {
@@ -40,6 +44,7 @@
 }
 
 #show raw.where(lang: "repl"): it => context {
+  log-id.update(0)
   block(..label-options, [*Code*])
   block(..body-options, raw(lang: "typc", it.text))
   block(..label-options, [*Result*])
@@ -290,4 +295,8 @@ for line in lines {
   dbg(count: matches.len(), matches.first().text, matches.last().text)
 }
 dbg(a: 123, b: 321, arr: (1, 2, 3), "pos1", [*pos2*], $"pos"^3$)
+```
+
+```repl
+dbg(1, 2, 3)
 ```
