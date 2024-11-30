@@ -505,7 +505,7 @@ enum(..datas.map(data => {
         })
       }).flatten()
     )
-  })
+  }).map(box)
 )
 ```
 
@@ -770,7 +770,7 @@ within the loop. *How many tiles are enclosed by the loop*?
 
 Primero que todo quiero dibujarlo:
 ```repl
-enum(..datas.map(v => box(draw-map(v))))
+enum(..datas.map(draw-map).map(box))
 ```
 
 === Boludeces
