@@ -8,6 +8,8 @@
 #set text(lang: "es")
 #set par(justify: true)
 
+#let enumerate(arr) = range(arr.len()).zip(arr)
+
 #let log-id = counter("log-id")
 #let dbg(..args) = {
   let named = args.named().pairs().map(((k, v)) => [#k = #v])
@@ -19,7 +21,7 @@
 }
 #let code(body) = raw(lang: "typc", body)
 
-#let globals = state("globals", (dbg: dbg))
+#let globals = state("globals", (dbg: dbg, enumerate: enumerate))
 
 #let label-options = (
   fill: gradient.linear(dir: ttb, luma(225), luma(245)),
@@ -536,6 +538,24 @@ let draw(data) = {
   )
 }
 (draw-map: draw)
+```
+
+Ahora me pongo a pensar la resolución:
+```repl
+dbg(draw-map(data))
+
+let map = data.split().map(v => v.codepoints())
+dbg(map)
+
+let start 
+for (y, row) in enumerate(map) {
+  for (x, col) in enumerate(row) {
+    if col == "S" {
+      start = (x, y)
+    }
+  }
+}
+dbg(start: start)
 ```
 
 === Part Two
