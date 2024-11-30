@@ -548,12 +548,13 @@ let graph-to-graphviz(graph, ..args) = {
   render({
     "digraph {"
       for (a, neighbours) in graph.pairs() {
+        //"\""; a; "\";"
         for b in neighbours {
           "\""; a; "\" -> \""; b; "\";"
 	}
       }
     "}"
-  })
+  }, ..args)
 }
 (graph-to-graphviz: graph-to-graphviz)
 ```
@@ -621,14 +622,14 @@ for (y, row) in enumerate(map) {
     let u = (x, y - 1)
     let neighbours = ()
     if is-inside(r) and connects-h(p, r) { neighbours.push(repr(r)) }
-    if is-inside(l) and connects-h(p, l) { neighbours.push(repr(l)) }
-    if is-inside(u) and connects-v(p, u) { neighbours.push(repr(u)) }
+    if is-inside(l) and connects-h(l, p) { neighbours.push(repr(l)) }
+    if is-inside(u) and connects-v(u, p) { neighbours.push(repr(u)) }
     if is-inside(d) and connects-v(p, d) { neighbours.push(repr(d)) }
     graph.insert(repr(p), neighbours)
   }
 }
 dbg(graph)
-scale(reflow:true, 50%, graph-to-graphviz(graph))
+scale(reflow:true, 50%, graph-to-graphviz(graph, engine: "neato"))
 ```
 
 === Part Two
