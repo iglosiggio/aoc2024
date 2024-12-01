@@ -782,6 +782,63 @@ scale(reflow: true, 35%, draw-map(read("2023-example2.data")))
 
 Es un poco grande.
 
+= Helpers
+
+Acá voy a ir agregando los helpers que me parezcan copados para que escribir
+sea más sencillo.
+
+```definition
+let op = (
+  // Arithmetic ops
+  add: (a, b) => a + b,
+  sub: (a, b) => a - b,
+  mul: (a, b) => a * b,
+  div: (a, b) => a / b,
+  // Relational ops
+  eq:  (a, b) => a == b,
+  neq: (a, b) => a != b,
+  gt:  (a, b) => a > b,
+  gte: (a, b) => a >= b,
+  lt:  (a, b) => a < b,
+  lte: (a, b) => a <=b,
+  // Boolean ops
+  band: (a, b) => a and b,
+  bor:  (a, b) => a or b,
+  bnot: v => not v,
+)
+
+let at(i, ..args) = v => v.at(i, ..args)
+
+let is_eq(a) = b => a == b
+let is_neq(a) = b => a != b
+
+let unwrap(args) = arguments(..args)
+let compose(start, ..fns) = (..args) => {
+  let res = start(..args)
+  for fn in fns.pos() {
+    if type(res) == arguments {
+      res = fn(..res)
+    } else {
+      res = fn(res)
+    }
+  }
+  return res
+}
+
+(op: op,
+ at: at,
+ is_eq: is_eq,
+ is_neq: is_neq,
+ compose: compose,
+ unwrap: unwrap)
+```
+
+```repl
+dbg(at(0, default: 1)((2, )))
+dbg(((1, 2), (2, 3), (1, 4))
+      .map(compose(unwrap, op.add, v => v * 2)))
+```
+
 = AOC 2024
 
 == Day 1: Historian Hysteria
@@ -985,3 +1042,25 @@ Y los resultados son...
 dbg(aoc-2024-12-01b(data))
 dbg(aoc-2024-12-01b(read("2024-12-01.data")))
 ```
+
+== Resolución con helpers
+
+Ahora que codié el ejercicio vamos a intentar armar una resolución un poco más
+linda:
+
+```repl
+// Cargo datos
+let data = (
+  read("2024-12-01.data")
+  .split("\n")
+  .filter(is_neq(""))
+  .map(v => v.split().map(int)))
+let l1 = data.map(at(0)).sorted()
+let l2 = data.map(at(1)).sorted()
+// Part One
+dbg(l1.zip(l2).map(compose(unwrap, op.sub, calc.abs)).sum())
+// Part Two
+dbg(l1.map(v => v * l2.filter(is_eq(v)).len()).sum())
+```
+
+Ok, tal vez "linda" no es la palabra adecuada.
