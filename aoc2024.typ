@@ -812,6 +812,13 @@ let at(i, ..args) = v => v.at(i, ..args)
 let is_eq(a) = b => a == b
 let is_neq(a) = b => a != b
 
+let field(name) = eval("v => v." + name)
+let call(name, ..args) = eval(
+  "v => v." + name + "(..args)",
+  scope: (args: args)
+)
+
+
 let unwrap(args) = arguments(..args)
 let compose(start, ..fns) = (..args) => {
   let res = start(..args)
@@ -829,6 +836,8 @@ let compose(start, ..fns) = (..args) => {
  at: at,
  is_eq: is_eq,
  is_neq: is_neq,
+ field: field,
+ call: call,
  compose: compose,
  unwrap: unwrap)
 ```
@@ -1054,7 +1063,7 @@ let data = (
   read("2024-12-01.data")
   .split("\n")
   .filter(is_neq(""))
-  .map(v => v.split().map(int)))
+  .map(compose(call("split"), call("map", int))))
 let l1 = data.map(at(0)).sorted()
 let l2 = data.map(at(1)).sorted()
 // Part One
