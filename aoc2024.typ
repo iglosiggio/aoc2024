@@ -473,7 +473,7 @@ Find the single giant loop starting at S. *How many steps along the loop does
 it take to get from the starting position to the point farthest from the
 starting position?*
 
-== Resolución
+==== Resolución
 
 Lo primero que me gustaría es poder dibujar los cosos estos...
 
@@ -766,7 +766,7 @@ In this last example, *10* tiles are enclosed by the loop.
 Figure out whether you have time to search for the nest by calculating the area
 within the loop. *How many tiles are enclosed by the loop*?
 
-=== Resolución
+==== Resolución
 
 Primero que todo quiero dibujarlo:
 ```repl
@@ -964,7 +964,7 @@ dbg(aoc-2024-12-01a(data))
 dbg(aoc-2024-12-01a(read("2024-12-01.data")))
 ```
 
-== Part Two
+=== Part Two
 
 Your analysis only confirmed what everyone feared: the two lists of location
 IDs are indeed very different.
@@ -1012,7 +1012,7 @@ So, for these example lists, the similarity score at the end of this process is
 Once again consider your left and right lists. *What is their similarity
 score?*
 
-=== Resolución
+==== Resolución
 
 Hacerlo $O(n^2)$ debería entrar ¿No?
 
@@ -1052,7 +1052,7 @@ dbg(aoc-2024-12-01b(data))
 dbg(aoc-2024-12-01b(read("2024-12-01.data")))
 ```
 
-== Resolución con helpers
+=== Resolución con helpers
 
 Ahora que codié el ejercicio vamos a intentar armar una resolución un poco más
 linda:
@@ -1073,3 +1073,244 @@ dbg(l1.map(v => v * l2.filter(is_eq(v)).len()).sum())
 ```
 
 Ok, tal vez "linda" no es la palabra adecuada.
+
+== Day 2: Red-Nosed Reports
+
+=== Part One
+
+Fortunately, the first location The Historians want to search isn't a long walk
+from the Chief Historian's office.
+
+While the Red-Nosed Reindeer nuclear fusion/fission plant appears to contain no
+sign of the Chief Historian, the engineers there run up to you as soon as they
+see you. Apparently, they *still* talk about the time Rudolph was saved through
+molecular synthesis from a single electron.
+
+They're quick to add that - since you're already here - they'd really
+appreciate your help analyzing some unusual data from the Red-Nosed reactor.
+You turn to check if The Historians are waiting for you, but they seem to have
+already divided into groups that are currently searching every corner of the
+facility. You offer to help with the unusual data.
+
+The unusual data (your puzzle input) consists of many *reports*, one report per
+line. Each report is a list of numbers called *levels* that are separated by
+spaces. For example:
+
+```data
+7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+```
+
+This example data contains six reports each containing five levels.
+
+The engineers are trying to figure out which reports are *safe*. The Red-Nosed
+reactor safety systems can only tolerate levels that are either gradually
+increasing or gradually decreasing. So, a report only counts as safe if both of
+the following are true:
+
+- The levels are either all *increasing* or all *decreasing*.
+- Any two adjacent levels differ by *at least one* and *at most three*.
+
+In the example above, the reports can be found safe or unsafe by checking those rules:
+
+- `7 6 4 2 1`: *Safe* because the levels are all decreasing by `1` or `2`.
+- `1 2 7 8 9`: *Unsafe* because `2 7` is an increase of `5`.
+- `9 7 6 2 1`: *Unsafe* because `6 2` is a decrease of `4`.
+- `1 3 2 4 5`: *Unsafe* because `1 3` is increasing but `3 2` is decreasing.
+- `8 6 4 4 1`: *Unsafe* because `4 4` is neither an increase or a decrease.
+- `1 3 6 7 9`: *Safe* because the levels are all increasing by `1`, `2`, or
+  `3`.
+
+So, in this example, `2` reports are safe.
+
+Analyze the unusual data from the engineers. How many reports are safe?
+
+==== Resolución
+
+Tengo que chequear dos condiciones, "sólo en un sentido" y "las diferencias son
+chicas".
+
+```repl
+let reportes = data.split("\n").map(compose(call("split"), call("map", int)))
+dbg(reportes)
+let ordenados = reportes.map(call("sorted"))
+let solo-en-un-sentido = (
+  reportes.zip(ordenados)
+    .map(((a, b)) => a == b or a == b.rev()))
+dbg(solo-en-un-sentido)
+let diferencias-chicas = ordenados.map(v =>
+  v.slice(1).zip(v)
+   .map(compose(unwrap, op.sub))
+   .all(v => 1 <= v and v <= 3))
+dbg(diferencias-chicas)
+let respuestas = solo-en-un-sentido.zip(diferencias-chicas).map(
+  compose(unwrap, op.band))
+dbg(respuestas)
+let respuesta = respuestas.map(int).sum()
+dbg(respuesta)
+```
+
+Ok, parece que funca
+
+```definition
+let fn(data) = {
+  let reportes = (
+    data
+      .split("\n")
+      .filter(is_neq(""))
+      .map(compose(call("split"), call("map", int))))
+  let ordenados = reportes.map(call("sorted"))
+  let solo-en-un-sentido = (
+    reportes.zip(ordenados)
+      .map(((a, b)) => a == b or a == b.rev()))
+  let diferencias-chicas = ordenados.map(v =>
+    v.slice(1).zip(v)
+     .map(compose(unwrap, op.sub))
+     .all(v => 1 <= v and v <= 3))
+  let respuestas = solo-en-un-sentido.zip(diferencias-chicas).map(
+    compose(unwrap, op.band))
+  let respuesta = respuestas.map(int).sum()
+  respuesta
+}
+(aoc-2024-12-02a: fn)
+```
+
+```repl
+dbg(aoc-2024-12-02a(data))
+dbg(aoc-2024-12-02a(read("2024-12-02.data")))
+```
+
+=== Part Two
+
+The engineers are surprised by the low number of safe reports until they
+realize they forgot to tell you about the Problem Dampener.
+
+The Problem Dampener is a reactor-mounted module that lets the reactor safety
+systems tolerate a *single bad level* in what would otherwise be a safe report.
+It's like the bad level never happened!
+
+Now, the same rules apply as before, except if removing a single level from an
+unsafe report would make it safe, the report instead counts as safe.
+
+More of the above example's reports are now safe:
+
+- `7 6 4 2 1`: *Safe* without removing any level.
+- `1 2 7 8 9`: *Unsafe* regardless of which level is removed.
+- `9 7 6 2 1`: *Unsafe* regardless of which level is removed.
+- `1 3 2 4 5`: *Safe* by removing the second level, `3`.
+- `8 6 4 4 1`: *Safe* by removing the third level, 4``.
+- `1 3 6 7 9`: *Safe* without removing any level.
+
+Thanks to the Problem Dampener, `4` reports are actually *safe*!
+
+Update your analysis by handling situations where the Problem Dampener can
+remove a single level from unsafe reports. *How many reports are now safe*?
+
+==== Resolución
+
+#strike[Ok, medio que puedo reusar el código que ya tengo.] Mucho bardo, vamos
+a escribir algo sencillo con un for a lo bestia. La data de prueba era:
+
+```data
+7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+```
+
+```repl
+let reportes = data.split("\n").map(compose(call("split"), call("map", int)))
+dbg(reportes)
+let pass = 0
+for reporte in reportes {
+  let es-valido(reporte) = {
+    let ordenado = reporte.sorted()
+    if reporte == ordenado or reporte == ordenado.rev() {
+      let dif = (
+        reporte.slice(1)
+          .zip(reporte)
+          .map(compose(unwrap, op.sub, calc.abs)))
+      if dif.all(v => 1 <= v and v <= 3) {
+        return true
+      }
+    }
+    return false
+  }
+  let mostrar(reporte) = "(" + reporte.map(v => [#v]).join(", ") + ")"
+
+  let funca = false
+  if es-valido(reporte) {
+    [#mostrar(reporte) es válido _de una_ \ ]
+    funca = true
+  } else {
+    for i in range(reporte.len()) {
+      let copia = reporte
+      let borrado = copia.remove(i)
+      if es-valido(copia) {
+        copia.insert(i, text(weight: "bold", fill: maroon, str(borrado)))
+        [#mostrar(copia) es válido _si le quitás el elemento marcado_ \ ]
+        funca = true
+        break
+      }
+    }
+  }
+  if funca {
+    pass = pass + 1
+  } else {
+    [#mostrar(reporte) *no* es válido \ ]
+  }
+}
+dbg(pass)
+```
+
+Y con la data posta...
+```repl
+data = read("2024-12-02.data")
+let reportes = data.split("\n").slice(0, -1).map(compose(call("split"), call("map", int)))
+let pass = 0
+for reporte in reportes {
+  let es-valido(reporte) = {
+    let ordenado = reporte.sorted()
+    if reporte == ordenado or reporte == ordenado.rev() {
+      let dif = (
+        reporte.slice(1)
+          .zip(reporte)
+          .map(compose(unwrap, op.sub, calc.abs)))
+      if dif.all(v => 1 <= v and v <= 3) {
+        return true
+      }
+    }
+    return false
+  }
+  let mostrar(reporte) = "(" + reporte.map(v => [#v]).join(", ") + ")"
+
+  let funca = false
+  if es-valido(reporte) {
+    [#mostrar(reporte) es válido _de una_ \ ]
+    funca = true
+  } else {
+    for i in range(reporte.len()) {
+      let copia = reporte
+      let borrado = copia.remove(i)
+      if es-valido(copia) {
+        copia.insert(i, text(weight: "bold", fill: maroon, str(borrado)))
+        [#mostrar(copia) es válido _si le quitás el elemento marcado_ \ ]
+        funca = true
+        break
+      }
+    }
+  }
+  if funca {
+    pass = pass + 1
+  } else {
+    [#mostrar(reporte) *no* es válido \ ]
+  }
+}
+dbg(pass)
+```
