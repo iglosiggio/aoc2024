@@ -1736,6 +1736,86 @@ dbg({
 })
 ```
 
+```data
+MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX
+```
+
+```repl
+let map = data.split("\n").filter(is_neq("")).map(call("codepoints"))
+
+let get(map, x, y) = {
+  if 0 <= y and y < map.len() {
+    let row = map.at(y)
+    if 0 <= x and x < row.len() {
+      return row.at(x)
+    }
+  }
+}
+
+let está-x-mas(map, x, y, flip-l, flip-r) = {
+  for (i, c) in "MAS".codepoints().enumerate() {
+    let l = if flip-l {
+      get(map, x + 1 - i, y + 1 - i)
+    } else {
+      get(map, x - 1 + i, y - 1 + i)
+    }
+    let r = if flip-r {
+      get(map, x - 1 + i, y + 1 - i)
+    } else {
+      get(map, x + 1 - i, y - 1 + i)
+    }
+    if l != c or r != c {
+      return false
+    }
+  }
+  return true
+}
+
+import "@preview/cetz:0.3.0"
+cetz.canvas({
+  import cetz.draw: *
+  set-style(mark: (end: ">"))
+
+  for (y, row) in enumerate(map) {
+    for x in range(row.len()) {
+      let did-match = false
+      for flip-l in (false, true) {
+        for flip-r in (false, true) {
+          if está-x-mas(map, x, y, flip-l, flip-r) {
+            if flip-l {
+              line((x + 0.5, y + 0.5), (x - 0.5, y - 0.5))
+            } else {
+              line((x - 0.5, y - 0.5), (x + 0.5, y + 0.5))
+            }
+            if flip-r {
+              line((x - 0.5, y + 0.5), (x + 0.5, y - 0.5))
+            } else {
+              line((x + 0.5, y - 0.5), (x - 0.5, y + 0.5))
+            }
+            did-match = true
+          }
+        }
+      }
+      if did-match {
+        circle((x, y), radius: 0.2, fill: black)
+        content((x, y), text(fill: white, get(map, x, y)))
+      } else {
+        content((x, y), text(fill: black, get(map, x, y)))
+      }
+    }
+  }
+})
+```
+
 Ok, y con la data posta...
 ```repl
 let map = (
