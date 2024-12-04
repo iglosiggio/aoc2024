@@ -1263,7 +1263,7 @@ for reporte in reportes {
   if funca {
     pass = pass + 1
   } else {
-    [#mostrar(reporte) *no* es válido \ ]
+    [#mostrar(reporte) *no* es válido  \ ]
   }
 }
 dbg(pass)
@@ -1419,4 +1419,369 @@ of just the enabled multiplications?*
     } else {
       state
     }))
+```
+
+=== Day 4: Ceres Search
+
+"Looks like the Chief's not here. Next!" One of The Historians pulls out a
+device and pushes the only button on it. After a brief flash, you recognize the
+interior of the Ceres monitoring station!
+
+As the search for the Chief continues, a small Elf who lives on the station
+tugs on your shirt; she'd like to know if you could help her with her *word
+search* (your puzzle input). She only has to find one word: `XMAS`.
+
+This word search allows words to be horizontal, vertical, diagonal, written
+backwards, or even overlapping other words. It's a little unusual, though, as
+you don't merely need to find one instance of `XMAS` - you need to find *all of
+them*. Here are a few ways `XMAS` might appear, where irrelevant characters
+have been replaced with .:
+
+```
+..X...
+.SAMX.
+.A..A.
+XMAS.S
+.X....
+```
+
+The actual word search will be full of letters instead. For example:
+
+```data
+MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX
+```
+
+In this word search, `XMAS` occurs a total of *18* times; here's the same word
+search again, but where letters not involved in any `XMAS` have been replaced
+with `.`:
+
+```
+....XXMAS.
+.SAMXMS...
+...S..A...
+..A.A.MS.X
+XMASAMX.MM
+X.....XA.A
+S.S.S.S.SS
+.A.A.A.A.A
+..M.M.M.MM
+.X.X.XMASX
+```
+
+Take a look at the little Elf's word search. *How many times does `XMAS`
+appear?*
+
+==== Resolucion
+
+Esto creo que debería ser fácil
+
+```repl
+let map = data.split("\n").filter(is_neq("")).map(call("codepoints"))
+dbg(map)
+
+let get(map, x, y) = {
+  if 0 <= y and y < map.len() {
+    let row = map.at(y)
+    if 0 <= x and x < row.len() {
+      return row.at(x)
+    }
+  }
+}
+dbg(
+  origin: get(map, 0, 0),
+  corner: get(map, 9, 9),
+  outside: (
+    get(map, -1, 0),
+    get(map, 0, -1),
+    get(map, 99, 0),
+    get(map, 0, 99)))
+
+let está-xmas(map, x, y, dx, dy) = {
+  for c in "XMAS" {
+    if get(map, x, y) != c {
+      return false
+    }
+    x = x + dx
+    y = y + dy
+  }
+  return true
+}
+
+let count = 0
+for (y, row) in enumerate(map) {
+  for x in range(row.len()) {
+    for dx in (-1, 0, 1) {
+      for dy in (-1, 0, 1) {
+        if dx == 0 and dy == 0 {
+          continue
+        }
+        if (está-xmas(map, x, y, dx, dy)) {
+          dbg(x: x, y: y, dx: dx, dy: dy)
+          count = count + 1
+        }
+      }
+    }
+  }
+}
+dbg(count: count)
+
+dbg({
+  import "@preview/cetz:0.3.0"
+  cetz.canvas({
+    import cetz.draw: *
+    set-style(mark: (end: ">"))
+
+    for (y, row) in enumerate(map) {
+      for x in range(row.len()) {
+        let did-match-color = black
+        for dx in (-1, 0, 1) {
+          for dy in (-1, 0, 1) {
+            if dx == 0 and dy == 0 {
+              continue
+            }
+            if (está-xmas(map, x, y, dx, dy)) {
+	      let small = 0.9
+	      let small-dx = small * dx
+	      let small-dy = small * dy
+	      circle((x, y), radius: 0.2, fill: black)
+	      line((x, y), (x + small-dx, y + small-dy))
+	      did-match-color = white
+            } else {
+	    }
+          }
+        }
+        content((x, y), text(fill: did-match-color, get(map, x, y)))
+      }
+    }
+  })
+})
+```
+
+Ok, parece que funca!!!
+
+```repl
+let map = (
+  read("2024-12-04.data")
+    .split("\n")
+    .filter(is_neq("")).map(call("codepoints")))
+
+let get(map, x, y) = {
+  if 0 <= y and y < map.len() {
+    let row = map.at(y)
+    if 0 <= x and x < row.len() {
+      return row.at(x)
+    }
+  }
+}
+
+let está-xmas(map, x, y, dx, dy) = {
+  for c in "XMAS" {
+    if get(map, x, y) != c {
+      return false
+    }
+    x = x + dx
+    y = y + dy
+  }
+  return true
+}
+
+let count = 0
+for (y, row) in enumerate(map) {
+  for x in range(row.len()) {
+    for dx in (-1, 0, 1) {
+      for dy in (-1, 0, 1) {
+        if dx == 0 and dy == 0 {
+          continue
+        }
+        if (está-xmas(map, x, y, dx, dy)) {
+          count = count + 1
+        }
+      }
+    }
+  }
+}
+dbg(count: count)
+```
+
+=== Part Two
+
+The Elf looks quizzically at you. Did you misunderstand the assignment?
+
+Looking for the instructions, you flip over the word search to find that this
+isn't actually an `XMAS` puzzle; it's an `X-MAS` puzzle in which you're
+supposed to find two `MAS` in the shape of an `X`. One way to achieve that is
+like this:
+
+```
+M.S
+.A.
+M.S
+```
+
+Irrelevant characters have again been replaced with `.` in the above diagram.
+Within the `X`, each `MAS` can be written forwards or backwards.
+
+Here's the same example from before, but this time all of the `X-MAS`es have
+been kept instead:
+
+```data
+.M.S......
+..A..MSMS.
+.M.S.MAA..
+..A.ASMSM.
+.M.S.M....
+..........
+S.S.S.S.S.
+.A.A.A.A..
+M.M.M.M.M.
+..........
+```
+
+In this example, an `X-MAS` appears *9* times.
+
+Flip the word search from the instructions back over to the word search side
+and try again. *How many times does an `X-MAS` appear?*
+
+==== Resolución
+
+Uf, medio paja de codear así a lo bestia pero bueno...
+
+
+```repl
+let map = data.split("\n").filter(is_neq("")).map(call("codepoints"))
+
+let get(map, x, y) = {
+  if 0 <= y and y < map.len() {
+    let row = map.at(y)
+    if 0 <= x and x < row.len() {
+      return row.at(x)
+    }
+  }
+}
+
+let está-x-mas(map, x, y, flip-l, flip-r) = {
+  for (i, c) in "MAS".codepoints().enumerate() {
+    let l = if flip-l {
+      get(map, x + 2 - i, y + 2 - i)
+    } else {
+      get(map, x + i, y + i)
+    }
+    let r = if flip-r {
+      get(map, x + i, y + 2 - i)
+    } else {
+      get(map, x + 2 - i, y + i)
+    }
+    if l != c or r != c {
+      return false
+    }
+  }
+  return true
+}
+
+let count = 0
+for (y, row) in enumerate(map) {
+  for x in range(row.len()) {
+    for flip-l in (false, true) {
+      for flip-r in (false, true) {
+        if está-x-mas(map, x, y, flip-l, flip-r) {
+          dbg(x: x, y: y, flip-l: flip-l, flip-r: flip-r)
+          count = count + 1
+        }
+      }
+    }
+  }
+}
+dbg(count: count)
+
+dbg({
+  import "@preview/cetz:0.3.0"
+  cetz.canvas({
+    import cetz.draw: *
+    set-style(mark: (end: ">"))
+
+    for (y, row) in enumerate(map) {
+      for x in range(row.len()) {
+        let did-match-color = maroon
+        for flip-l in (false, true) {
+          for flip-r in (false, true) {
+            if está-x-mas(map, x, y, flip-l, flip-r) {
+	      if flip-l {
+	        line(stroke: gray, (x + 2, y + 2), (x + 0.1, y + 0.1))
+	      } else {
+	        line(stroke: gray, (x, y), (x + 1.9, y + 1.9))
+	      }
+	      if flip-r {
+	        line(stroke: gray, (x + 1, y + 1), (x + 1.9, y + 0.1))
+	      } else {
+	        line(stroke: gray, (x + 1, y + 1), (x + 0.1, y + 1.9))
+	      }
+	      circle((x, y), radius: 0.2, fill: black)
+	      did-match-color = white
+            }
+          }
+        }
+        content((x, y), text(weight: "bold", fill: did-match-color, get(map, x, y)))
+      }
+    }
+  })
+})
+```
+
+Ok, y con la data posta...
+```repl
+let map = (
+  read("2024-12-04.data")
+    .split("\n")
+    .filter(is_neq("")).map(call("codepoints")))
+
+let get(map, x, y) = {
+  if 0 <= y and y < map.len() {
+    let row = map.at(y)
+    if 0 <= x and x < row.len() {
+      return row.at(x)
+    }
+  }
+}
+
+let está-x-mas(map, x, y, flip-l, flip-r) = {
+  for (i, c) in "MAS".codepoints().enumerate() {
+    let l = if flip-l {
+      get(map, x + 2 - i, y + 2 - i)
+    } else {
+      get(map, x + i, y + i)
+    }
+    let r = if flip-r {
+      get(map, x + i, y + 2 - i)
+    } else {
+      get(map, x + 2 - i, y + i)
+    }
+    if l != c or r != c {
+      return false
+    }
+  }
+  return true
+}
+
+let count = 0
+for (y, row) in enumerate(map) {
+  for x in range(row.len()) {
+    for flip-l in (false, true) {
+      for flip-r in (false, true) {
+        if está-x-mas(map, x, y, flip-l, flip-r) {
+          count = count + 1
+        }
+      }
+    }
+  }
+}
+dbg(count: count)
 ```
