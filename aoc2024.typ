@@ -552,7 +552,7 @@ let graph-to-graphviz(graph, ..args) = {
         //"\""; a; "\";"
         for b in neighbours {
           "\""; a; "\" -> \""; b; "\";"
-	}
+        }
       }
     "}"
   }, ..args)
@@ -1549,14 +1549,14 @@ dbg({
               continue
             }
             if (está-xmas(map, x, y, dx, dy)) {
-	      let small = 0.9
-	      let small-dx = small * dx
-	      let small-dy = small * dy
-	      circle((x, y), radius: 0.2, fill: black)
-	      line((x, y), (x + small-dx, y + small-dy))
-	      did-match-color = white
+              let small = 0.9
+              let small-dx = small * dx
+              let small-dy = small * dy
+              circle((x, y), radius: 0.2, fill: black)
+              line((x, y), (x + small-dx, y + small-dy))
+              did-match-color = white
             } else {
-	    }
+            }
           }
         }
         content((x, y), text(fill: did-match-color, get(map, x, y)))
@@ -1714,18 +1714,18 @@ dbg({
         for flip-l in (false, true) {
           for flip-r in (false, true) {
             if está-x-mas(map, x, y, flip-l, flip-r) {
-	      if flip-l {
-	        line(stroke: gray, (x + 2, y + 2), (x + 0.1, y + 0.1))
-	      } else {
-	        line(stroke: gray, (x, y), (x + 1.9, y + 1.9))
-	      }
-	      if flip-r {
-	        line(stroke: gray, (x + 1, y + 1), (x + 1.9, y + 0.1))
-	      } else {
-	        line(stroke: gray, (x + 1, y + 1), (x + 0.1, y + 1.9))
-	      }
-	      circle((x, y), radius: 0.2, fill: black)
-	      did-match-color = white
+              if flip-l {
+                line(stroke: gray, (x + 2, y + 2), (x + 0.1, y + 0.1))
+              } else {
+                line(stroke: gray, (x, y), (x + 1.9, y + 1.9))
+              }
+              if flip-r {
+                line(stroke: gray, (x + 1, y + 1), (x + 1.9, y + 0.1))
+              } else {
+                line(stroke: gray, (x + 1, y + 1), (x + 0.1, y + 1.9))
+              }
+              circle((x, y), radius: 0.2, fill: black)
+              did-match-color = white
             }
           }
         }
