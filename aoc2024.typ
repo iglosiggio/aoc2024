@@ -1736,6 +1736,60 @@ dbg({
 })
 ```
 
+Ok, y con la data posta...
+```repl
+let map = (
+  read("2024-12-04.data")
+    .split("\n")
+    .filter(is_neq("")).map(call("codepoints")))
+
+let get(map, x, y) = {
+  if 0 <= y and y < map.len() {
+    let row = map.at(y)
+    if 0 <= x and x < row.len() {
+      return row.at(x)
+    }
+  }
+}
+
+let está-x-mas(map, x, y, flip-l, flip-r) = {
+  for (i, c) in "MAS".codepoints().enumerate() {
+    let l = if flip-l {
+      get(map, x + 2 - i, y + 2 - i)
+    } else {
+      get(map, x + i, y + i)
+    }
+    let r = if flip-r {
+      get(map, x + i, y + 2 - i)
+    } else {
+      get(map, x + 2 - i, y + i)
+    }
+    if l != c or r != c {
+      return false
+    }
+  }
+  return true
+}
+
+let count = 0
+for (y, row) in enumerate(map) {
+  for x in range(row.len()) {
+    for flip-l in (false, true) {
+      for flip-r in (false, true) {
+        if está-x-mas(map, x, y, flip-l, flip-r) {
+          count = count + 1
+        }
+      }
+    }
+  }
+}
+dbg(count: count)
+```
+
+==== Visualización
+
+Agus me dio una idea piola para visualizar la solución:
+
 ```data
 MMMSXXMASM
 MSAMXMSMSA
@@ -1814,54 +1868,4 @@ cetz.canvas({
     }
   }
 })
-```
-
-Ok, y con la data posta...
-```repl
-let map = (
-  read("2024-12-04.data")
-    .split("\n")
-    .filter(is_neq("")).map(call("codepoints")))
-
-let get(map, x, y) = {
-  if 0 <= y and y < map.len() {
-    let row = map.at(y)
-    if 0 <= x and x < row.len() {
-      return row.at(x)
-    }
-  }
-}
-
-let está-x-mas(map, x, y, flip-l, flip-r) = {
-  for (i, c) in "MAS".codepoints().enumerate() {
-    let l = if flip-l {
-      get(map, x + 2 - i, y + 2 - i)
-    } else {
-      get(map, x + i, y + i)
-    }
-    let r = if flip-r {
-      get(map, x + i, y + 2 - i)
-    } else {
-      get(map, x + 2 - i, y + i)
-    }
-    if l != c or r != c {
-      return false
-    }
-  }
-  return true
-}
-
-let count = 0
-for (y, row) in enumerate(map) {
-  for x in range(row.len()) {
-    for flip-l in (false, true) {
-      for flip-r in (false, true) {
-        if está-x-mas(map, x, y, flip-l, flip-r) {
-          count = count + 1
-        }
-      }
-    }
-  }
-}
-dbg(count: count)
 ```
