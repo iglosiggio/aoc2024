@@ -2074,8 +2074,8 @@ for update in pages {
 
 dbg(answer: pages.filter(update => is-valid(update, build-subgraph(update)))
                  .map(update => update.at(update.len().bit-rshift(1)))
-		 .map(int)
-		 .sum())
+                 .map(int)
+                 .sum())
 ```
 
 Medio paja, pero parece que funca, a ver con los datos posta
@@ -2119,6 +2119,219 @@ let is-valid(update, subgraph) = {
 
 dbg(answer: pages.filter(update => is-valid(update, build-subgraph(update)))
                  .map(update => update.at(update.len().bit-rshift(1)))
-		 .map(int)
-		 .sum())
+                 .map(int)
+                 .sum())
+```
+
+=== Part Two
+
+While the Elves get to work printing the correctly-ordered updates, you have a
+little time to fix the rest of them.
+
+For each of the *incorrectly-ordered updates*, use the page ordering rules to
+put the page numbers in the right order. For the above example, here are the
+three incorrectly-ordered updates and their correct orderings:
+
+- `75,97,47,61,53` becomes `97,75,47,61,53`.
+- `61,13,29` becomes `61,29,13`.
+- `97,13,75,29,47` becomes `97,75,47,29,13`.
+
+After taking *only the incorrectly-ordered updates* and ordering them
+correctly, their middle page numbers are `47`, `29`, and `47`. Adding these
+together produces `123`.
+
+Find the updates which are not in the correct order. *What do you get if you add
+up the middle page numbers after correctly ordering just those updates?*
+
+==== Resolución
+
+```data
+47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47
+```
+
+```repl
+// Parse input
+let (rules,pages) = data.split("\n\n")
+let rules = rules.split("\n").map(call("split", "|"))
+let pages = pages.split("\n").filter(is_neq("")).map(call("split", ","))
+
+// Build graph
+let rules-graph = (:)
+for (from, to) in rules {
+  if rules-graph.at(from, default: none) == none {
+    rules-graph.insert(from, ())
+  }
+  rules-graph.at(from).push(to)
+}
+
+let build-subgraph(nodes) = (
+  nodes
+    .map(k => (k, rules-graph.at(k, default: ()).filter(v => v in nodes)))
+    .to-dict()
+)
+
+let is-valid(update, subgraph) = {
+  let state = (:)
+  for page in update.rev() {
+    if state.at(page, default: false) {
+      return false
+    }
+    state.insert(page, true)
+    for n in subgraph.at(page, default: ()) {
+      if not state.at(n, default: false) {
+        return false
+      }
+    }
+  }
+
+  return true
+}
+
+let do-toposort(subgraph) = {
+  let toposort = ()
+  let state = (:)
+  for v in subgraph.keys() {
+    let stack = ((node: v, idx: 0),)
+    while stack.len() != 0 {
+      let frame = stack.pop()
+      let neighbours = subgraph.at(frame.node, default: ())
+      if frame.idx == 0 {
+        // FN ENTRY
+        if state.at(frame.node, default: false) {
+          continue
+        }
+        state.insert(frame.node, "FOUND-LOOP")
+      }
+      if frame.idx == neighbours.len() {
+        state.insert(frame.node, true)
+        toposort.push(frame.node)
+        continue
+      }
+      let new-frame = (node: neighbours.at(frame.idx), idx: 0)
+      frame.idx = frame.idx + 1
+      stack.push(frame)
+      stack.push(new-frame)
+    }
+  }
+  return toposort.rev()
+}
+
+let answer = 0
+for update in pages {
+  let subgraph = build-subgraph(update)
+  if is-valid(update, subgraph) {
+    continue
+  }
+  let toposort = do-toposort(subgraph)
+  answer = answer + int(toposort.at(toposort.len().bit-rshift(1)))
+  dbg(update, toposort)
+}
+dbg(answer: answer)
+```
+
+Bueno, parece que mi emulador de pila funca (es horrible) a ver con la data
+posta...
+
+```repl
+// Parse input
+let (rules,pages) = read("2024-12-05.data").split("\n\n")
+let rules = rules.split("\n").map(call("split", "|"))
+let pages = pages.split("\n").filter(is_neq("")).map(call("split", ","))
+
+// Build graph
+let rules-graph = (:)
+for (from, to) in rules {
+  if rules-graph.at(from, default: none) == none {
+    rules-graph.insert(from, ())
+  }
+  rules-graph.at(from).push(to)
+}
+
+let build-subgraph(nodes) = (
+  nodes
+    .map(k => (k, rules-graph.at(k, default: ()).filter(v => v in nodes)))
+    .to-dict()
+)
+
+let is-valid(update, subgraph) = {
+  let state = (:)
+  for page in update.rev() {
+    if state.at(page, default: false) {
+      return false
+    }
+    state.insert(page, true)
+    for n in subgraph.at(page, default: ()) {
+      if not state.at(n, default: false) {
+        return false
+      }
+    }
+  }
+
+  return true
+}
+
+let do-toposort(subgraph) = {
+  let toposort = ()
+  let state = (:)
+  for v in subgraph.keys() {
+    let stack = ((node: v, idx: 0),)
+    while stack.len() != 0 {
+      let frame = stack.pop()
+      let neighbours = subgraph.at(frame.node, default: ())
+      if frame.idx == 0 {
+        // FN ENTRY
+        if state.at(frame.node, default: false) {
+          continue
+        }
+        state.insert(frame.node, "FOUND-LOOP")
+      }
+      if frame.idx == neighbours.len() {
+        state.insert(frame.node, true)
+        toposort.push(frame.node)
+        continue
+      }
+      let new-frame = (node: neighbours.at(frame.idx), idx: 0)
+      frame.idx = frame.idx + 1
+      stack.push(frame)
+      stack.push(new-frame)
+    }
+  }
+  return toposort.rev()
+}
+
+dbg(pages.map(update => {
+  let subgraph = build-subgraph(update)
+  if is-valid(update, subgraph) {
+    return 0
+  }
+  let toposort = do-toposort(subgraph)
+  return int(toposort.at(toposort.len().bit-rshift(1)))
+}).sum())
 ```
