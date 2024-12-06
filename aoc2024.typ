@@ -120,6 +120,8 @@ y = y + 1
 
 === Day 1: Trebuchet?!
 
+==== Part One
+
 Something is wrong with global snow production, and you've been selected to
 take a look. The Elves have even given you a map; on it, they've used stars to
 mark the top fifty locations that are likely to be having problems.
@@ -164,7 +166,7 @@ In this example, the calibration values of these four lines are `12`, `38`,
 Consider your entire calibration document. *What is the sum of all of the
 calibration values?*
 
-=== Resolución
+==== Resolución
 
 Tengo un macro que pone el último input como global:
 ```repl
@@ -190,14 +192,14 @@ let ejercicio(data) = {
 ejercicio(data)
 ```
 
-=== Data posta
+Con data posta...
 
 ```repl
 let data = read("2023-example.data")
 ejercicio(data)
 ```
 
-== Part Two
+==== Part Two
 
 Your calculation isn't quite right. It looks like some of the digits are
 actually *spelled out with letters*: `one`, `two`, `three`, `four`, `five`,
@@ -275,14 +277,14 @@ let ejercicio-2(data) = {
 ejercicio-2(data)
 ```
 
-=== Data posta
+Con data posta...
 
 ```repl
 let data = read("2023-example.data")
 ejercicio-2(data)
 ```
 
-=== Hola fran
+Hola fran
 
 ```data
 two1nine
@@ -1315,7 +1317,9 @@ for reporte in reportes {
 dbg(pass)
 ```
 
-=== Day 3: Mull It Over
+== Day 3: Mull It Over
+
+=== Part One
 
 "Our computers are having issues, so I have no idea if we have any Chief
 Historians in stock! You're welcome to check the warehouse, though," says the
@@ -1421,7 +1425,9 @@ of just the enabled multiplications?*
     }))
 ```
 
-=== Day 4: Ceres Search
+== Day 4: Ceres Search
+
+=== Part One
 
 "Looks like the Chief's not here. Next!" One of The Historians pulls out a
 device and pushes the only button on it. After a brief flash, you recognize the
@@ -1871,6 +1877,8 @@ cetz.canvas({
 ```
 
 == Day 5: Print Queue
+
+=== Part One
 
 Satisfied with their search on Ceres, the squadron of scholars suggests
 subsequently scanning the stationery stacks of sub-basement 17.
@@ -2335,3 +2343,457 @@ dbg(pages.map(update => {
   return int(toposort.at(toposort.len().bit-rshift(1)))
 }).sum())
 ```
+
+== Day 6: Guard Gallivant
+
+=== Part One
+
+The Historians use their fancy device again, this time to whisk you all away to
+the North Pole prototype suit manufacturing lab... in the year 1518! It turns
+out that having direct access to history is very convenient for a group of
+historians.
+
+You still have to be careful of time paradoxes, and so it will be important to
+avoid anyone from 1518 while The Historians search for the Chief.
+Unfortunately, a single *guard* is patrolling this part of the lab.
+
+Maybe you can work out where the guard will go ahead of time so that The
+Historians can search safely?
+
+You start by making a map (your puzzle input) of the situation. For example:
+
+```data
+....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...
+```
+
+The map shows the current position of the guard with `^` (to indicate the guard
+is currently facing *up* from the perspective of the map). Any *obstructions* -
+crates, desks, alchemical reactors, etc. - are shown as `#`.
+
+Lab guards in 1518 follow a very strict patrol protocol which involves
+repeatedly following these steps:
+
+- If there is something directly in front of you, turn right 90 degrees.
+- Otherwise, take a step forward.
+
+Following the above protocol, the guard moves up several times until she
+reaches an obstacle (in this case, a pile of failed suit prototypes):
+
+```
+....#.....
+....^....#
+..........
+..#.......
+.......#..
+..........
+.#........
+........#.
+#.........
+......#...
+```
+
+Because there is now an obstacle in front of the guard, she turns right before
+continuing straight in her new facing direction:
+
+```
+....#.....
+........>#
+..........
+..#.......
+.......#..
+..........
+.#........
+........#.
+#.........
+......#...
+```
+
+Reaching another obstacle (a spool of several *very* long polymers), she turns
+right again and continues downward:
+
+```
+....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#......v.
+........#.
+#.........
+......#...
+```
+
+This process continues for a while, but the guard eventually leaves the mapped
+area (after walking past a tank of universal solvent):
+
+```
+....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#........
+........#.
+#.........
+......#v..
+```
+
+By predicting the guard's route, you can determine which specific positions in
+the lab will be in the patrol path. *Including the guard's starting position*,
+the positions visited by the guard before leaving the area are marked with an
+X:
+
+```
+....#.....
+....XXXXX#
+....X...X.
+..#.X...X.
+..XXXXX#X.
+..X.X.X.X.
+.#XXXXXXX.
+.XXXXXXX#.
+#XXXXXXX..
+......#X..
+```
+
+In this example, the guard will visit *`41`* distinct positions on your map.
+
+Predict the path of the guard. *How many distinct positions will the guard visit
+before leaving the mapped area?*    
+
+==== Resolución
+
+¿Funca hacerlo iterativo?
+
+```repl
+let map = data.split("\n").filter(is_neq("")).map(call("codepoints"))
+dbg(map)
+
+let start-pos = none
+for (y, row) in map.enumerate() {
+  for (x, cell) in row.enumerate() {
+    if cell in "^" {
+      start-pos = (x: x, y: y)
+      break
+    }
+  }
+  if start-pos != none {
+    break
+  }
+}
+dbg(start)
+
+let next-dir = (
+  "^": ">",
+  ">": "v",
+  "v": "<",
+  "<": "^",
+)
+let dx = (
+  "^": 0,
+  ">": 1,
+  "v": 0,
+  "<": -1,
+)
+let dy = (
+  "^": -1,
+  ">": 0,
+  "v": 1,
+  "<": 0,
+)
+
+let rows = map.len()
+let cols = map.first().len()
+let inside((x, y)) = (
+  0 <= x and x < cols
+  and 0 <= y and y < rows
+)
+
+let cur-dir = "^"
+let pos = start-pos
+while true {
+  let next-pos = (x: pos.x + dx.at(cur-dir), y: pos.y + dy.at(cur-dir))
+  dbg(pos: pos, inside: inside(next-pos), size: (cols, rows))
+  if not inside(next-pos) {
+    break
+  }
+
+  let next-c = map.at(next-pos.y).at(next-pos.x)
+  if next-c == "#" {
+    cur-dir = next-dir.at(cur-dir)
+  } else {
+    pos = next-pos
+    map.at(pos.y).at(pos.x) = "X"
+  }
+}
+dbg(map)
+
+// Cuento las X
+let ocupadas = 0
+for (y, row) in map.enumerate() {
+  for (x, cell) in row.enumerate() {
+    if cell in "^X^" {
+      ocupadas = ocupadas + 1
+    }
+  }
+}
+dbg(answer: ocupadas)
+
+dbg("Ok, y si dibujo el camino?")
+dbg({
+  import "@preview/cetz:0.3.0"
+  cetz.canvas({
+    import cetz.draw: *
+    set-style(mark: (end: ">"))
+
+    let ocupadas = 0
+    for (y, row) in map.enumerate() {
+      for (x, cell) in row.enumerate() {
+        if cell == "#" {
+	  rect((x - 0.7, y - 0.7), (x + 0.7, y + 0.7), fill: gray)
+	}
+      }
+    }
+
+    let cur-dir = "^"
+    let pos = start-pos
+    while true {
+      let next-pos = (x: pos.x + dx.at(cur-dir), y: pos.y + dy.at(cur-dir))
+      if not inside(next-pos) {
+        break
+      }
+    
+      let next-c = map.at(next-pos.y).at(next-pos.x)
+      if next-c == "#" {
+        cur-dir = next-dir.at(cur-dir)
+      } else {
+	line((pos.x, pos.y), (next-pos.x, next-pos.y))
+        pos = next-pos
+      }
+    }
+
+    // https://math.stackexchange.com/a/1344707
+    line(
+      (start-pos.x - 0.2, start-pos.y + 0.4 / calc.sqrt(12)),
+      (start-pos.x + 0.2, start-pos.y + 0.4 / calc.sqrt(12)),
+      (start-pos.x,       start-pos.y - 0.4 / calc.sqrt(3)),
+      mark: none,
+      close: true,
+      fill: gray
+    )
+  })
+})
+```
+
+A ver si la data posta es suficientemente chica...
+```repl
+let map = read("2024-12-06.data").split("\n").filter(is_neq("")).map(call("codepoints"))
+
+let start-pos = none
+for (y, row) in map.enumerate() {
+  for (x, cell) in row.enumerate() {
+    if cell in "^" {
+      start-pos = (x: x, y: y)
+      break
+    }
+  }
+  if start-pos != none {
+    break
+  }
+}
+
+let next-dir = (
+  "^": ">",
+  ">": "v",
+  "v": "<",
+  "<": "^",
+)
+let dx = (
+  "^": 0,
+  ">": 1,
+  "v": 0,
+  "<": -1,
+)
+let dy = (
+  "^": -1,
+  ">": 0,
+  "v": 1,
+  "<": 0,
+)
+
+let rows = map.len()
+let cols = map.first().len()
+let inside((x, y)) = (
+  0 <= x and x < cols
+  and 0 <= y and y < rows
+)
+
+let cur-dir = "^"
+let pos = start-pos
+while true {
+  let next-pos = (x: pos.x + dx.at(cur-dir), y: pos.y + dy.at(cur-dir))
+  if not inside(next-pos) {
+    break
+  }
+
+  let next-c = map.at(next-pos.y).at(next-pos.x)
+  if next-c == "#" {
+    cur-dir = next-dir.at(cur-dir)
+  } else {
+    pos = next-pos
+    map.at(pos.y).at(pos.x) = "X"
+  }
+}
+
+// Cuento las X
+let ocupadas = 0
+for (y, row) in map.enumerate() {
+  for (x, cell) in row.enumerate() {
+    if cell in "^X^" {
+      ocupadas = ocupadas + 1
+    }
+  }
+}
+dbg(answer: ocupadas)
+```
+
+=== Part Two
+
+While The Historians begin working around the guard's patrol route, you borrow
+their fancy device and step outside the lab. From the safety of a supply
+closet, you time travel through the last few months and record the nightly
+status of the lab's guard post on the walls of the closet.
+
+Returning after what seems like only a few seconds to The Historians, they
+explain that the guard's patrol area is simply too large for them to safely
+search the lab without getting caught.
+
+Fortunately, they are *pretty sure* that adding a single new obstruction
+*won't* cause a time paradox. They'd like to place the new obstruction in such
+a way that the guard will get *stuck in a loop*, making the rest of the lab
+safe to search.
+
+To have the lowest chance of creating a time paradox, The Historians would like
+to know *all* of the possible positions for such an obstruction. The new
+obstruction can't be placed at the guard's starting position - the guard is
+there right now and would notice.
+
+In the above example, there are only `6` different positions where a new
+obstruction would cause the guard to get stuck in a loop. The diagrams of these
+six situations use `O` to mark the new obstruction, `|` to show a position
+where the guard moves up/down, `-` to show a position where the guard moves
+left/right, and `+` to show a position where the guard moves both up/down and
+left/right.
+
+Option one, put a printing press next to the guard's starting position:
+
+```
+....#.....
+....+---+#
+....|...|.
+..#.|...|.
+....|..#|.
+....|...|.
+.#.O^---+.
+........#.
+#.........
+......#...
+```
+
+Option two, put a stack of failed suit prototypes in the bottom right quadrant
+of the mapped area:
+
+```
+....#.....
+....+---+#
+....|...|.
+..#.|...|.
+..+-+-+#|.
+..|.|.|.|.
+.#+-^-+-+.
+......O.#.
+#.........
+......#...
+```
+
+Option three, put a crate of chimney-squeeze prototype fabric next to the
+standing desk in the bottom right quadrant:
+
+```
+....#.....
+....+---+#
+....|...|.
+..#.|...|.
+..+-+-+#|.
+..|.|.|.|.
+.#+-^-+-+.
+.+----+O#.
+#+----+...
+......#...
+```
+
+Option four, put an alchemical retroencabulator near the bottom left corner:
+
+```
+....#.....
+....+---+#
+....|...|.
+..#.|...|.
+..+-+-+#|.
+..|.|.|.|.
+.#+-^-+-+.
+..|...|.#.
+#O+---+...
+......#...
+```
+
+Option five, put the alchemical retroencabulator a bit to the right instead:
+
+```
+....#.....
+....+---+#
+....|...|.
+..#.|...|.
+..+-+-+#|.
+..|.|.|.|.
+.#+-^-+-+.
+....|.|.#.
+#..O+-+...
+......#...
+```
+
+Option six, put a tank of sovereign glue right next to the tank of universal
+solvent:
+
+```
+....#.....
+....+---+#
+....|...|.
+..#.|...|.
+..+-+-+#|.
+..|.|.|.|.
+.#+-^-+-+.
+.+----++#.
+#+----++..
+......#O..
+```
+
+It doesn't really matter what you choose to use as an obstacle so long as you
+and The Historians can put it into position without the guard noticing. The
+important thing is having enough options that you can find one that minimizes
+time paradoxes, and in this example, there are *`6`* different positions you
+could choose.
+
+You need to get the guard stuck in a loop by adding a single new obstruction.
+*How many different positions could you choose for this obstruction?*
