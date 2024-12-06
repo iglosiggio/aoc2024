@@ -2945,6 +2945,29 @@ let inside((x, y)) = (
   and 0 <= y and y < rows
 )
 
+
+let mark-normal-path(map, pos) = {
+  let dir = "^"
+  while true {
+    let cur-dx = dx.at(dir)
+    let cur-dy = dy.at(dir)
+    while true {
+      let next-pos = (x: pos.x + cur-dx, y: pos.y + cur-dy)
+      if not inside(next-pos) {
+        return map
+      }
+
+      let next-c = map.at(next-pos.y).at(next-pos.x)
+      if next-c == "#" {
+        break
+      }
+      pos = next-pos
+      map.at(next-pos.y).at(next-pos.x) = "X"
+    }
+    dir = next-dir.at(dir)
+  }
+}
+
 let move(map, pos) = {
   let dir = "^"
   let visited = (:)
@@ -2973,10 +2996,12 @@ let move(map, pos) = {
   }
 }
 
+map = mark-normal-path(map, start-pos)
+
 let count = 0
 for y in range(rows) {
   for x in range(cols) {
-    if map.at(y).at(x) != "." {
+    if map.at(y).at(x) != "X" {
       continue
     }
     map.at(y).at(x) = "#"
