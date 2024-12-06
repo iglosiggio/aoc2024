@@ -2797,3 +2797,194 @@ could choose.
 
 You need to get the guard stuck in a loop by adding a single new obstruction.
 *How many different positions could you choose for this obstruction?*
+
+==== Resolución
+
+```data
+....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...
+```
+
+```repl
+let map = data.split("\n").filter(is_neq("")).map(call("codepoints"))
+
+let start-pos = none
+for (y, row) in map.enumerate() {
+  for (x, cell) in row.enumerate() {
+    if cell in "^" {
+      start-pos = (x: x, y: y)
+      break
+    }
+  }
+  if start-pos != none {
+    break
+  }
+}
+
+let next-dir = (
+  "^": ">",
+  ">": "v",
+  "v": "<",
+  "<": "^",
+)
+let dx = (
+  "^": 0,
+  ">": 1,
+  "v": 0,
+  "<": -1,
+)
+let dy = (
+  "^": -1,
+  ">": 0,
+  "v": 1,
+  "<": 0,
+)
+
+let rows = map.len()
+let cols = map.first().len()
+let inside((x, y)) = (
+  0 <= x and x < cols
+  and 0 <= y and y < rows
+)
+
+let move(map, pos) = {
+  let dir = "^"
+  let visited = (:)
+  while true {
+    let cur-dx = dx.at(dir)
+    let cur-dy = dy.at(dir)
+    while true {
+      let next-pos = (x: pos.x + cur-dx, y: pos.y + cur-dy)
+      if not inside(next-pos) {
+        return "ESCAPES"
+      }
+
+      let pos-str = dir + "," + str(pos.x) + "," + str(pos.y)
+      if visited.at(pos-str, default: false) {
+        return "LOOPS"
+      }
+      visited.insert(pos-str, true)
+
+      let next-c = map.at(next-pos.y).at(next-pos.x)
+      if next-c == "#" {
+        break
+      }
+      pos = next-pos
+    }
+    dir = next-dir.at(dir)
+  }
+}
+
+let count = 0
+for y in range(rows) {
+  for x in range(cols) {
+    if map.at(y).at(x) != "." {
+      continue
+    }
+    map.at(y).at(x) = "#"
+    if move(map, start-pos) == "LOOPS" {
+      dbg(map)
+      count = count + 1
+    }
+    map.at(y).at(x) = "."
+  }
+}
+
+dbg(count)
+```
+
+Ok esto debería funcar pero es re lento
+
+```repl
+let map = read("2024-12-06.data").split("\n").filter(is_neq("")).map(call("codepoints"))
+
+let start-pos = none
+for (y, row) in map.enumerate() {
+  for (x, cell) in row.enumerate() {
+    if cell in "^" {
+      start-pos = (x: x, y: y)
+      break
+    }
+  }
+  if start-pos != none {
+    break
+  }
+}
+
+let next-dir = (
+  "^": ">",
+  ">": "v",
+  "v": "<",
+  "<": "^",
+)
+let dx = (
+  "^": 0,
+  ">": 1,
+  "v": 0,
+  "<": -1,
+)
+let dy = (
+  "^": -1,
+  ">": 0,
+  "v": 1,
+  "<": 0,
+)
+
+let rows = map.len()
+let cols = map.first().len()
+let inside((x, y)) = (
+  0 <= x and x < cols
+  and 0 <= y and y < rows
+)
+
+let move(map, pos) = {
+  let dir = "^"
+  let visited = (:)
+  while true {
+    let cur-dx = dx.at(dir)
+    let cur-dy = dy.at(dir)
+    while true {
+      let next-pos = (x: pos.x + cur-dx, y: pos.y + cur-dy)
+      if not inside(next-pos) {
+        return "ESCAPES"
+      }
+
+      let pos-str = dir + "," + str(pos.x) + "," + str(pos.y)
+      if visited.at(pos-str, default: false) {
+        return "LOOPS"
+      }
+      visited.insert(pos-str, true)
+
+      let next-c = map.at(next-pos.y).at(next-pos.x)
+      if next-c == "#" {
+        break
+      }
+      pos = next-pos
+    }
+    dir = next-dir.at(dir)
+  }
+}
+
+let count = 0
+for y in range(rows) {
+  for x in range(cols) {
+    if map.at(y).at(x) != "." {
+      continue
+    }
+    map.at(y).at(x) = "#"
+    if move(map, start-pos) == "LOOPS" {
+      count = count + 1
+    }
+    map.at(y).at(x) = "."
+  }
+}
+dbg(count)
+```
