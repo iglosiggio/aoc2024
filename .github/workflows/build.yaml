@@ -11,8 +11,12 @@ jobs:
         uses: lvignoli/typst-action@main
         with:
           source_file: aoc2024.typ
+      - name: Typst
+        uses: lvignoli/typst-action@main
+        with:
+          source_file: aoc2024-week2.typ
       - name: Subir el PDF
         uses: actions/upload-artifact@v4
         with:
-          name: aoc2024.pdf
-          path: aoc2024.pdf
+          name: aoc2024
+          path: aoc2024*.pdf
