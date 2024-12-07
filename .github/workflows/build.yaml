@@ -1,4 +1,4 @@
-name: Crear el PDF de la propuesta de tesis
+name: Correr los programas y subir la salida
 on: push
 
 jobs:
