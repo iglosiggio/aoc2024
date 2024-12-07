@@ -8,13 +8,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Typst
-        uses: lvignoli/typst-action@main
+        uses: typst-community/setup-typst@v3
         with:
           source_file: aoc2024.typ
-      - name: Typst
-        uses: lvignoli/typst-action@main
-        with:
-          source_file: aoc2024-week2.typ
+      - name: First week
+        run: typst compile aoc2024.typ
+      - name: Second week
+        run: typst compile aoc2024-week2.typ
       - name: Subir el PDF
         uses: actions/upload-artifact@v4
         with:
