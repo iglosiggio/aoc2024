@@ -456,4 +456,63 @@ let solve(data) = {
 }
 dbg(respuesta-ejemplo: solve(data))
 dbg(respuesta-posta: solve(read("2024-12-08.data")))
+dbg({
+  import "@preview/cetz:0.3.0"
+
+  let data = parse(read("2024-12-08.data"))
+  let antennas = antennas(data)
+  let antenna-types = antennas.keys()
+
+  let cmap = color.map.turbo
+  let conversion-factor = cmap.len() / antenna-types.len()
+  let type-to-color = (:)
+  for (i, type) in antenna-types.enumerate() {
+    type-to-color.insert(type, cmap.at(calc.floor(i * conversion-factor)))
+  }
+
+  let rows = data.len()
+  let cols = data.first().len()
+  let is-inside((x, y)) = 0 <= x and x < cols and 0 <= y and y < rows
+
+  cetz.canvas({
+    import cetz.draw: *
+    scale(31%)
+
+    for (y, row) in data.enumerate() {
+      y = y
+      for (x, col) in row.codepoints().enumerate() {
+        x = x
+	let color = type-to-color.at(col, default: none)
+	if color != none {
+	  circle((x, y), fill: color, stroke: color, radius: 0.4)
+	}
+      }
+    }
+
+    for (freq, antennas) in antennas.pairs() {
+      let color = type-to-color.at(freq)
+      for (i, (ax, ay)) in antennas.enumerate() {
+        for (bx, by) in antennas.slice(i + 1) {
+	  let dx = bx - ax
+	  let dy = by - ay
+
+	  let dnorm = calc.sqrt(dx * dx + dy * dy)
+	  let ndx = dx / dnorm
+	  let ndy = dy / dnorm
+
+          let p = (ax - dx, ay - dy)
+	  if is-inside(p) {
+	    circle(p, radius: 0.1, stroke: color, fill: color)
+	    line(p, (p.at(0) + ndx, p.at(1) + ndy), stroke: color)
+	  }
+          let p = (bx + dx, by + dy)
+	  if is-inside(p) {
+	    circle(p, radius: 0.1, stroke: color, fill: color)
+	    line(p, (p.at(0) - ndx, p.at(1) - ndy), stroke: color)
+	  }
+	}
+      }
+    }
+  })
+})
 ```
