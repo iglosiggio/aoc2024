@@ -388,11 +388,13 @@ cetz.canvas({
         if is-inside(p) {
           circle(p, radius: 0.1, stroke: color, fill: color)
           line(p, (p.at(0) + ndx, p.at(1) + ndy), stroke: color)
+          line((ax, ay), (ax - ndx, ay - ndy), stroke: color)
         }
         let p = (bx + dx, by + dy)
         if is-inside(p) {
           circle(p, radius: 0.1, stroke: color, fill: color)
           line(p, (p.at(0) - ndx, p.at(1) - ndy), stroke: color)
+          line((bx, by), (bx + ndx, by + ndy), stroke: color)
         }
       }
     }
