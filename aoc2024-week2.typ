@@ -731,3 +731,117 @@ example's checksum would be *`2858`*.
 
 Start over, now compacting the amphipod's hard drive using this new method
 instead. *What is the resulting filesystem checksum?*
+
+==== Resolución
+
+```definition
+let even(n) = n.bit-and(1) == 0
+
+let compact-free(data-in) = {
+  let current-chunk-start = 0
+  let current-size = 0
+  let current-offset = 0
+  let data-out = ()
+  for (offset, size) in data-in {
+    if current-offset != offset {
+      if current-size != 0 {
+        data-out.push((current-chunk-start, current-size))
+      }
+      current-chunk-start = offset
+      current-size = size
+      current-offset = offset + size
+    } else {
+      current-size = current-size + size
+      current-offset = current-offset + size
+    }
+  }
+  if current-size != 0 {
+    data-out.push((current-chunk-start, current-size))
+  }
+  return data-out
+}
+
+let solve(data, debug: true) = {
+  data = data.codepoints().filter(is_neq("\n")).map(int)
+
+  let files = ()
+  let free-slots = ()
+
+  let i = 0
+  let len = data.len()
+  let file-id = 0
+  let disk-offset = 0
+  while i < len {
+    while i < len {
+      let size = data.at(i)
+      if size != 0 {
+        if (even(i)) {
+          files.push((disk-offset, size, file-id))
+        } else {
+          free-slots.push((disk-offset, size))
+        }
+      }
+
+      if (even(i)) {
+        file-id = file-id + 1
+      }
+
+      disk-offset = disk-offset + size
+      i = i + 1
+      if i.bit-and(0xFF) == 0 { break }
+    }
+  }
+
+  let compacted-files = ()
+  for (offset, size, file-id) in files.rev() {
+    for (i, (free-offset, free-size)) in free-slots.enumerate() {
+      if offset < free-offset { break }
+      if free-size < size { continue }
+      free-slots.at(i) = (free-offset + size, free-size - size)
+      free-slots.push((offset, size))
+      free-slots = free-slots.sorted(key: v => v.at(0))
+      free-slots = compact-free(free-slots)
+      offset = free-offset
+      break
+    }
+    compacted-files.push((offset, size, file-id))
+  }
+  compacted-files = compacted-files.sorted(key: v => v.at(0))
+
+  if debug {
+    dbg((compacted-files + free-slots)
+      .sorted(key: v => v.at(0))
+      .map(thing => {
+        if thing.len() == 2 {
+          "." * thing.at(1)
+        } else {
+          str(thing.at(2)) * thing.at(1)
+        }
+      })
+      .join())
+  }
+
+  let result = compacted-files.map(((offset, size, file-id)) => {
+    let sum-to-start = offset * (offset - 1) / 2
+    let sum-to-end = (offset + size) * (offset + size - 1) / 2
+    (sum-to-end - sum-to-start) * file-id
+  }).sum()
+  if (debug) {
+    dbg(result)
+  } else {
+    return result
+  }
+}
+
+(solve-2024-12-09b: solve)
+```
+
+```data
+2333133121414131402
+```
+
+```repl
+solve-2024-12-09b(data)
+solve-2024-12-09b("0010051006061606")
+dbg(solve-2024-12-09b(read("2024-12-09.data"), debug: false))
+```
