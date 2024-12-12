@@ -1334,12 +1334,32 @@ dbg(after-25: state.len())
 
 Ok, y con el input posta?
 ```repl
-let state = read("2024-12-11.data").split().map(int)
-dbg(state)
-for i in range(25) {
-  state = state.map(apply-rules).flatten()
+// Esta es la solución vieja, el tema es que es re lenta
+//let state = read("2024-12-11.data").split().map(int)
+//dbg(state)
+//for i in range(25) {
+//  state = state.map(apply-rules).flatten()
+//}
+//dbg(after-25: state.len())
+
+let data = read("2024-12-11.data").split().map(int)
+
+let state = (:)
+for rock in data {
+  state.insert(str(rock), 1)
 }
-dbg(after-25: state.len())
+
+for i in range(25) {
+  let next-state = (:)
+  for (rock, count) in state.pairs() {
+    for next-rock in apply-rules(int(rock)) {
+      let str-next-rock = str(next-rock)
+      next-state.insert(str-next-rock, next-state.at(str-next-rock, default: 0) + count)
+    }
+  }
+  state = next-state
+}
+dbg(state.values().sum())
 ```
 
 === Part Two
@@ -1350,36 +1370,22 @@ The Historians sure are taking a long time. To be fair, the infinite corridors
 *How many stones would you have after blinking a total of 75 times?*
 
 ```repl
-let memo = (:)
 let data = read("2024-12-11.data").split().map(int)
-let queue = data.map(v => ("ENTER", v, 75))
-for ignored in range(1000000) {
-  if queue.len() == 0 { break }
 
-  let (task, v, n) = queue.pop()
-  let memo-key = str(v) + "," + str(n)
-  if n == 0 {
-    memo.insert(memo-key, 1)
-    continue
-  }
-  if task == "ENTER" {
-    queue.push(("EXIT", v, n))
-    for next-task in apply-rules(v) {
-      if memo.at(str(next-task) + "," + str(n - 1), default: none) == none {
-        queue.push(("ENTER", next-task, n - 1))
-      }
+let state = (:)
+for rock in data {
+  state.insert(str(rock), 1)
+}
+
+for i in range(75) {
+  let next-state = (:)
+  for (rock, count) in state.pairs() {
+    for next-rock in apply-rules(int(rock)) {
+      let str-next-rock = str(next-rock)
+      next-state.insert(str-next-rock, next-state.at(str-next-rock, default: 0) + count)
     }
-  } else {
-    let result = (
-      apply-rules(v)
-        .map(v => memo.at(str(v) + "," + str(n - 1)))
-        .sum())
-    memo.insert(memo-key, result)
   }
+  state = next-state
 }
-if queue.len() == 0 {
-  dbg(data.map(v => memo.at(str(v) + ",75")).sum())
-} else {
-  dbg(queue)
-}
+dbg(state.values().sum())
 ```
