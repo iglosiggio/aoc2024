@@ -1216,3 +1216,170 @@ for data in datas {
   dbg(total-score: dia-10-calcular-raitings(g))
 }
 ```
+
+== Day 11: Plutonian Pebbles
+
+The ancient civilization on Pluto was known for its ability to manipulate
+spacetime, and while The Historians explore their infinite corridors, you've
+noticed a strange set of physics-defying stones.
+
+At first glance, they seem like normal stones: they're arranged in a perfectly
+*straight line*, and each stone has a *number* engraved on it.
+
+The strange part is that every time you blink, the stones *change*.
+
+Sometimes, the number engraved on a stone changes. Other times, a stone might
+*split in two*, causing all the other stones to shift over a bit to make room
+in their perfectly straight line.
+
+As you observe them for a while, you find that the stones have a consistent
+behavior. Every time you blink, the stones each *simultaneously* change
+according to *the first applicable rule* in this list:
+
+- If the stone is engraved with the number `0`, it is replaced by a stone
+  engraved with the number `1`.
+- If the stone is engraved with a number that has an *even* number of digits,
+  it is replaced by *two stones*. The left half of the digits are engraved on
+  the new left stone, and the right half of the digits are engraved on the new
+  right stone. (The new numbers don't keep extra leading zeroes: 1000 would
+  become stones `10` and `0`.)
+- If none of the other rules apply, the stone is replaced by a new stone; the
+  old stone's number *multiplied by 2024* is engraved on the new stone.
+
+No matter how the stones change, their *order is preserved*, and they stay on
+their perfectly straight line.
+
+How will the stones evolve if you keep blinking at them? You take a note of the
+number engraved on each stone in the line (your puzzle input).
+
+If you have an arrangement of five stones engraved with the numbers
+#raw("0 1 10 99 999") and you blink once, the stones transform as follows:
+
+- The first stone, `0`, becomes a stone marked `1`.
+- The second stone, `1`, is multiplied by `2024` to become `2024`.
+- The third stone, `10`, is split into a stone marked `1` followed by a stone
+  marked `0`.
+- The fourth stone, `99`, is split into two stones marked `9`.
+- The fifth stone, `999`, is replaced by a stone marked `2021976`.
+
+So, after blinking once, your five stones would become an arrangement of seven
+stones engraved with the numbers `1 2024 1 0 9 9 2021976`.
+
+Here is a longer example:
+
+```
+Initial arrangement:
+125 17
+
+After 1 blink:
+253000 1 7
+
+After 2 blinks:
+253 0 2024 14168
+
+After 3 blinks:
+512072 1 20 24 28676032
+
+After 4 blinks:
+512 72 2024 2 0 2 4 2867 6032
+
+After 5 blinks:
+1036288 7 2 20 24 4048 1 4048 8096 28 67 60 32
+
+After 6 blinks:
+2097446912 14168 4048 2 0 2 4 40 48 2024 40 48 80 96 2 8 6 7 6 0 3 2
+```
+
+In this example, after blinking six times, you would have `22` stones. After
+blinking `25` times, you would have `55312` stones!
+
+Consider the arrangement of stones in front of you. *How many stones will you
+have after blinking 25 times?*
+
+==== Resolución
+
+```definition
+let even(n) = n.bit-and(1) == 0
+
+let apply-rules(v) = {
+  if v == 0 { return (1,) }
+  let str-v = str(v)
+  if even(str-v.len()) {
+    let mid = str-v.len().bit-rshift(1)
+    return (int(str-v.slice(0, mid)), int(str-v.slice(mid)))
+  }
+  return (v * 2024,)
+}
+(apply-rules: apply-rules)
+```
+
+```repl
+dbg(zero: apply-rules(0))
+dbg(odd-digits: apply-rules(9))
+dbg(even-digits: apply-rules(12))
+dbg(even-digits: apply-rules(1234))
+dbg(even-digits: apply-rules(1000))
+let state = (125, 17)
+for i in range(6) {
+  dbg(state)
+  state = state.map(apply-rules).flatten()
+}
+
+let state = (125, 17)
+for i in range(25) {
+  state = state.map(apply-rules).flatten()
+}
+dbg(after-25: state.len())
+```
+
+Ok, y con el input posta?
+```repl
+let state = read("2024-12-11.data").split().map(int)
+dbg(state)
+for i in range(25) {
+  state = state.map(apply-rules).flatten()
+}
+dbg(after-25: state.len())
+```
+
+=== Part Two
+
+The Historians sure are taking a long time. To be fair, the infinite corridors
+*are* very large.
+
+*How many stones would you have after blinking a total of 75 times?*
+
+```repl
+let memo = (:)
+let data = read("2024-12-11.data").split().map(int)
+let queue = data.map(v => ("ENTER", v, 75))
+for ignored in range(1000000) {
+  if queue.len() == 0 { break }
+
+  let (task, v, n) = queue.pop()
+  let memo-key = str(v) + "," + str(n)
+  if n == 0 {
+    memo.insert(memo-key, 1)
+    continue
+  }
+  if task == "ENTER" {
+    queue.push(("EXIT", v, n))
+    for next-task in apply-rules(v) {
+      if memo.at(str(next-task) + "," + str(n - 1), default: none) == none {
+        queue.push(("ENTER", next-task, n - 1))
+      }
+    }
+  } else {
+    let result = (
+      apply-rules(v)
+        .map(v => memo.at(str(v) + "," + str(n - 1)))
+        .sum())
+    memo.insert(memo-key, result)
+  }
+}
+if queue.len() == 0 {
+  dbg(data.map(v => memo.at(str(v) + ",75")).sum())
+} else {
+  dbg(queue)
+}
+```
