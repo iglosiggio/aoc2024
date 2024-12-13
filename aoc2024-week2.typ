@@ -1389,3 +1389,99 @@ for i in range(75) {
 }
 dbg(state.values().sum())
 ```
+
+== Day 12: Garden Groups
+
+
+=== Part One
+
+No voy a copiarlo, son las 2am
+
+==== Resolución
+
+```data
+RRRRIICCFF
+RRRRIICCCF
+VVRRRCCFFF
+VVRCCCJFFF
+VVVVCJJCFE
+VVIVCCJJEE
+VVIIICJJEE
+MIIIIIJJEE
+MIIISIJEEE
+MMMISSJEEE
+```
+
+```repl
+let build-graph(data) = {
+  let g = (:)
+  data = data.split("\n").filter(is_neq(""))
+
+  let rows = data.len()
+  let cols = data.first().len()
+
+  let in-range((x, y)) = 0 <= x and x < cols and 0 <= y and y < rows
+  let vert-name((x, y)) = str(x) + "," + str(y)
+  let at((x, y)) = data.at(y).at(x)
+
+  for (y, row) in data.enumerate() {
+    for (x, col) in row.codepoints().enumerate() {
+      let vecinos = ()
+      for v in ((x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)) {
+        if in-range(v) and at(v) == col {
+          vecinos.push(vert-name(v))
+        }
+      }
+      g.insert(vert-name((x, y)), vecinos)
+    }
+  }
+  return g
+}
+
+let componentes-conexos(g) = {
+  let visitados = (:)
+  let componentes = ()
+
+  for v in g.keys() {
+    if visitados.at(v, default: false) { continue }
+    let queue = (v,)
+    let componente = (area: 0, perimetro: 0, v: v)
+    while queue.len() != 0 {
+      let c = queue.pop()
+      if visitados.at(c, default: false) { continue }
+
+      visitados.insert(c, true)
+
+      componente.area = componente.area + 1
+      componente.perimetro = componente.perimetro + 4 - g.at(c).len()
+      for vecino in g.at(c) {
+        if visitados.at(vecino, default: false) { continue }
+	queue.push(vecino)
+      }
+    }
+    componentes.push(componente)
+  }
+  return componentes
+}
+
+let solve(data, debug: true) = {
+  let g = build-graph(data)
+  let c = componentes-conexos(g)
+  let r = c.map(v => v.area * v.perimetro).sum()
+  if debug {
+    dbg(g)
+    dbg(c)
+    dbg(answer: r)
+  } else {
+    return r
+  }
+}
+
+solve(data)
+dbg(solucion: solve(read("2024-12-12.data"), debug: false))
+```
+
+=== Part Two
+
+
+Oh no
